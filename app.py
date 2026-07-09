@@ -85,7 +85,7 @@ def login():
  
 @app.route("/auth/callback")
 def auth_callback():
-    token = google.authorize_access_token()  # exchanges code, verifies state token
+    token = google.authorize_access_token()  
     userinfo = token.get("userinfo")
     if not userinfo:
         userinfo = google.get("https://www.googleapis.com/oauth2/v3/userinfo").json()
@@ -138,6 +138,7 @@ def serialize_task(task):
 #--------------------------------------------------------------------------------------------------------
 
 @app.route('/api/todo', methods=['GET'])
+@login_required
 def get_data():
     try:
         limit = int(request.args.get("limit", 10))
@@ -165,6 +166,7 @@ def get_data():
     return jsonify(tasks)
 
 @app.route('/api/todo', methods=['POST'])
+@login_required
 def post_data():
     data = request.get_json()
     task = {
@@ -182,6 +184,7 @@ def post_data():
     )
 
 @app.route('/api/todo/<task_id>', methods=['PATCH'])
+@login_required
 def update_data(task_id):
     data = request.get_json()
     try:
@@ -201,6 +204,7 @@ def update_data(task_id):
     )
 
 @app.route('/api/todo/<task_id>', methods=['DELETE'])
+@login_required
 def erase_data(task_id):
     try:
         obj_id = ObjectId(task_id)
