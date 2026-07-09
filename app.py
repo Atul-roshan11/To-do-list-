@@ -1,20 +1,141 @@
 import os
+import time
+from datetime import timedelta
+from functools import wraps
+import requests
+from authlib.integrations.flask_client import OAuth
 from bson import ObjectId
 from bson.errors import InvalidId
 from dotenv import load_dotenv
-from flask import Flask, json, render_template, jsonify, request, Response, abort
+from flask import (Flask, g, json, jsonify, redirect, render_template,Response, abort, request, session, url_for)
 from pymongo import MongoClient
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.environ["FLASK_SECRET_KEY"]
+ 
 client = MongoClient(os.environ["MONGO_URI"])
 db = client["todolistdb"]
 tasks_collection = db["tasks"]
+users_collection = db['users_id']
+ 
+oauth = OAuth(app)
+google = oauth.register(
+    name='google',
+    client_id=os.environ["GOOGLE_CLIENT_ID"],
+    client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'}
+)
 
+def refresh_google_access_token(user):
+    resp = requests.post(
+        "https://oauth2.googleapis.com/token",
+        data={
+            "client_id": os.environ["GOOGLE_CLIENT_ID"],
+            "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+            "refresh_token": user["refresh_token"],
+            "grant_type": "refresh_token",
+        },
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    new_expires_at = int(time.time()) + data["expires_in"]
+ 
+    users_collection.update_one(
+        {"_id": user["_id"]},
+        {"$set": {
+            "access_token": data["access_token"],
+            "access_token_expires_at": new_expires_at,
+        }
+        },
+    )
+    return data["access_token"]
+ 
+
+def get_valid_access_token(user):
+    if user.get("access_token_expires_at", 0) - 60 > int(time.time()):
+        return user["access_token"]
+    return refresh_google_access_token(user)
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user_id = session.get("user_id")
+        if not user_id:
+            return redirect(url_for("login"))
+        try:
+            user = users_collection.find_one({"_id": ObjectId(user_id)})
+        except InvalidId:
+            user = None
+        if not user:
+            session.clear()
+            return redirect(url_for("login"))
+        g.user = user
+        return f(*args, **kwargs)
+    return decorated
+ 
+@app.route("/login")
+def login():
+    print(url_for('auth_callback'))
+    redirect_uri = url_for("auth_callback", _external=True)
+    return google.authorize_redirect("http://127.0.0.1:5000/auth/callback")
+ 
+ 
+@app.route("/auth/callback")
+def auth_callback():
+    token = google.authorize_access_token()  # exchanges code, verifies state token
+    userinfo = token.get("userinfo")
+    if not userinfo:
+        userinfo = google.get("https://www.googleapis.com/oauth2/v3/userinfo").json()
+ 
+    google_sub = userinfo["sub"]
+    update_fields = {
+        "email": userinfo.get("email"),
+        "name": userinfo.get("name"),
+        "access_token": token["access_token"],
+        "access_token_expires_at": token["expires_at"],
+    }
+    if token.get("refresh_token"):
+        update_fields["refresh_token"] = token["refresh_token"]
+ 
+    users_collection.update_one(
+        {"google_sub": google_sub},
+        {"$set": update_fields, "$setOnInsert": {"google_sub": google_sub}},
+        upsert=True,
+    )
+    user = users_collection.find_one({"google_sub": google_sub})
+ 
+    session.clear()
+    session["user_id"] = str(user["_id"])
+    session.permanent = True
+ 
+    return redirect("/")
+ 
+ 
+@app.route("/logout")
+def logout():
+    user_id = session.get("user_id")
+    if user_id:
+        try:
+            user = users_collection.find_one({"_id": ObjectId(user_id)})
+        except InvalidId:
+            user = None
+        if user and user.get("refresh_token"):
+            requests.post(
+                "https://oauth2.googleapis.com/revoke",
+                params={"token": user["refresh_token"]},
+            )
+    session.clear()
+    return redirect("/")
+ 
 def serialize_task(task):
     task["_id"] = str(task["_id"])
+    task["user_id"]=str(task["user_id"])
     return task 
+
+#--------------------------------------------------------------------------------------------------------
 
 @app.route('/api/todo', methods=['GET'])
 def get_data():
@@ -48,8 +169,8 @@ def post_data():
     data = request.get_json()
     task = {
         'title': data['title'],
-        'priority': data['priority'],
-        'deadline': data['deadline'],
+        'priority': data.get[('priority')],
+        'deadline': data.get[('deadline')],
         'completed': False
     }
     result = tasks_collection.insert_one(task)
