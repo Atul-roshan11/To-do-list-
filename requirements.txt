@@ -1,5 +1,6 @@
-pymongo
+PyMongo
 flask
 python-dotenv
-google-auth
-pyjwt
+Authlib
+requests
+dnspython
