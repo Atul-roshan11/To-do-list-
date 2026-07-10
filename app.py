@@ -80,7 +80,7 @@ def login_required(f):
 def login():
     print(url_for('auth_callback'))
     redirect_uri = url_for("auth_callback", _external=True)
-    return google.authorize_redirect("http://127.0.0.1:5000/auth/callback")
+    return google.authorize_redirect(redirect_uri)
  
  
 @app.route("/auth/callback")
