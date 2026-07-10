@@ -13,8 +13,8 @@ from pymongo import MongoClient
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ["FLASK_SECRET_KEY"]
- 
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "to-do-list-")
+
 client = MongoClient(os.environ["MONGO_URI"])
 db = client["todolistdb"]
 tasks_collection = db["tasks"]
