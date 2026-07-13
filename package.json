@@ -1,0 +1,21 @@
+{
+  "name": "to-do-list-",
+  "version": "1.0.0",
+  "description": "One could add their daily tasks saved at one place, mark them as done one by one as completed,   setup priority and deadline for each task.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Atul-roshan11/To-do-list-.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Atul-roshan11/To-do-list-/issues"
+  },
+  "homepage": "https://github.com/Atul-roshan11/To-do-list-#readme"
+}
