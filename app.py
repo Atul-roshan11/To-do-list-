@@ -171,8 +171,8 @@ def post_data():
     data = request.get_json()
     task = {
         'title': data['title'],
-        'priority': data.get[('priority')],
-        'deadline': data.get[('deadline')],
+        'priority': data.get('priority'),
+        'deadline': data.get('deadline'),
         'completed': False
     }
     result = tasks_collection.insert_one(task)
