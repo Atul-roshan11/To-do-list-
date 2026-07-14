@@ -16,13 +16,12 @@ load_dotenv()
 app = Flask(__name__)
 
 CORS(
-    app,
-    supports_credentials= True,
-    origins=["https://todolistfrontend-jade.vercel.app/"]
-)
+    app, 
+    supports_credentials=True, 
+    origins=["https://todolistfrontend-jade.vercel.app/"])
+
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "to-do-list-")
 app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SECURE=True,
     SESSION_COOKIE_SAMESITE="None",
     PERMANENT_SESSION_LIFETIME=timedelta(days=7)
@@ -87,7 +86,7 @@ def login_required(f):
         g.user = user
         return f(*args, **kwargs)
     return decorated
- 
+
 @app.route("/login")
 def login():
     print(url_for('auth_callback'))
@@ -154,13 +153,11 @@ def get_data():
     try:
         limit = int(request.args.get("limit", 10))
     except:
-        abort(400, description="entre an integer")
+        abort(400, description="type error")
     limit= max(1,min(100, limit))
     cursor_param = request.args.get("cursor")
     
-    query= {
-        'user_id': g.user["_id"]
-    }
+    query= {}
     if cursor_param:
         try:
             query['_id']= {'$gt':ObjectId(cursor_param)}
@@ -176,7 +173,8 @@ def get_data():
     
     tasks = [serialize_task(task) for task in results]
     
-    return jsonify(tasks)
+    return jsonify({"tasks": tasks, "next_cursor": next_cursor, "has_more": has_more})
+
 
 @app.route('/api/todo', methods=['POST'])
 @login_required
@@ -187,7 +185,6 @@ def post_data():
         'priority': data.get('priority'),
         'deadline': data.get('deadline'),
         'completed': False,
-        'user_id': g.user["_id"]
     }
     result = tasks_collection.insert_one(task)
     task["_id"] = str(result.inserted_id)
