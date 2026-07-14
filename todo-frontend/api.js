@@ -1,4 +1,5 @@
-const BASE = '/api/todo';
+const API_ORIGIN = import.meta.env.VITE_API_URL; 
+const BASE = `${API_ORIGIN}/api/todo`;
 
 async function request(url, options = {}) {
   const res = await fetch(url, {
@@ -13,9 +14,6 @@ async function request(url, options = {}) {
   return res.json();
 }
 
-// Now accepts a cursor + limit so the caller can page through results.
-// Expects the backend to respond with { tasks, next_cursor, has_more }
-// (see the backend note in chat — /api/todo currently returns a bare array).
 export const getTasks = (cursor, limit = 10) => {
   const params = new URLSearchParams({ limit });
   if (cursor) params.set('cursor', cursor);

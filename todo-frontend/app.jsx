@@ -66,7 +66,7 @@ export default function App() {
       <div className="center">
         <h1>To-Do List</h1>
         <p>Please log in to see your tasks.</p>
-        <a className="login-btn" href="/login">Login with Google</a>
+        <a className="login-btn" href={`${import.meta.env.VITE_API_URL}/login`}>Login with Google</a>
       </div>
     );
   }
