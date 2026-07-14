@@ -4,3 +4,4 @@ python-dotenv
 Authlib
 requests
 dnspython
+flask-cors
