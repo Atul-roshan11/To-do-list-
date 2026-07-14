@@ -13,7 +13,15 @@ async function request(url, options = {}) {
   return res.json();
 }
 
-export const getTasks = () => request(BASE);
+// Now accepts a cursor + limit so the caller can page through results.
+// Expects the backend to respond with { tasks, next_cursor, has_more }
+// (see the backend note in chat — /api/todo currently returns a bare array).
+export const getTasks = (cursor, limit = 10) => {
+  const params = new URLSearchParams({ limit });
+  if (cursor) params.set('cursor', cursor);
+  return request(`${BASE}?${params.toString()}`);
+};
+
 export const addTask = (task) =>
   request(BASE, { method: 'POST', body: JSON.stringify(task) });
 export const updateTask = (id, fields) =>

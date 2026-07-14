@@ -9,12 +9,24 @@ from bson.errors import InvalidId
 from dotenv import load_dotenv
 from flask import (Flask, g, json, jsonify, redirect, render_template,Response, abort, request, session, url_for)
 from pymongo import MongoClient
+from flask_cors import CORS
 
 load_dotenv()
 
 app = Flask(__name__)
+
+CORS(
+    app,
+    supports_credentials= True,
+    origins=["https://todolistfrontend-jade.vercel.app/"]
+)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "to-do-list-")
- 
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE="None",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7)
+)
 client = MongoClient(os.environ["MONGO_URI"])
 db = client["todolistdb"]
 tasks_collection = db["tasks"]
@@ -111,7 +123,7 @@ def auth_callback():
     session["user_id"] = str(user["_id"])
     session.permanent = True
  
-    return redirect("/")
+    return redirect("https://todolistfrontend-jade.vercel.app/")
  
  
 @app.route("/logout")
@@ -128,14 +140,13 @@ def logout():
                 params={"token": user["refresh_token"]},
             )
     session.clear()
-    return redirect("/")
+    return redirect("https://todolistfrontend-jade.vercel.app/")
  
 def serialize_task(task):
     task["_id"] = str(task["_id"])
     task["user_id"]=str(task["user_id"])
     return task 
 
-#--------------------------------------------------------------------------------------------------------
 
 @app.route('/api/todo', methods=['GET'])
 @login_required
@@ -147,7 +158,9 @@ def get_data():
     limit= max(1,min(100, limit))
     cursor_param = request.args.get("cursor")
     
-    query= {}
+    query= {
+        'user_id': g.user["_id"]
+    }
     if cursor_param:
         try:
             query['_id']= {'$gt':ObjectId(cursor_param)}
@@ -173,7 +186,8 @@ def post_data():
         'title': data['title'],
         'priority': data.get('priority'),
         'deadline': data.get('deadline'),
-        'completed': False
+        'completed': False,
+        'user_id': g.user["_id"]
     }
     result = tasks_collection.insert_one(task)
     task["_id"] = str(result.inserted_id)
@@ -192,17 +206,17 @@ def update_data(task_id):
     except InvalidId:
         abort(404, description="Item not found")
 
-    result = tasks_collection.update_one({'_id': obj_id}, {'$set': data})
+    result = tasks_collection.update_one({'_id': obj_id, 'user_id': g.user["_id"]}, {'$set': data})
     if result.matched_count == 0:
         abort(404, description="Item not found")
 
-    updated_task = tasks_collection.find_one({"_id": obj_id})
+    updated_task = tasks_collection.find_one({"_id": obj_id, 'user_id': g.user["_id"]})
     return Response(
         response=json.dumps(serialize_task(updated_task)),
         status=200,
         mimetype="application/json"
     )
-
+    
 @app.route('/api/todo/<task_id>', methods=['DELETE'])
 @login_required
 def erase_data(task_id):
