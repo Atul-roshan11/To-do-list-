@@ -44,7 +44,7 @@ export default function App() {
       setTitle('');
       setPriority('');
       setDeadline('');
-    });
+    });   
   };
 
   const handleToggle = (task) => {
