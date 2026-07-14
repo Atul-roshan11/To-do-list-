@@ -31,3 +31,15 @@ body { font-family: system-ui, sans-serif; background: #f6f7f9; margin: 0; }
 
 .login-btn { padding: 10px 18px; background: #4285F4; color: white;
   border-radius: 6px; text-decoration: none; }
+
+.load-more {
+  display: block;
+  margin: 16px auto 0;
+  padding: 8px 16px;
+  border: 1px solid #4f46e5;
+  background: white;
+  color: #4f46e5;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.load-more:disabled { opacity: 0.6; cursor: default; }

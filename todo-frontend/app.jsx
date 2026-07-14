@@ -4,23 +4,37 @@ import './src/app.css';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
-  const [title,setTitle]= useState('');
+  const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('');
-  const [deadline, setDeadline] =useState('');
-  const [loggedIn,setLoggedIn] = useState(true);
-  const [loading, setLoading]= useState(true);
+  const [deadline, setDeadline] = useState('');
+  const [loggedIn, setLoggedIn] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
 
-  const loadTasks = () => {
-    getTasks()
+  const loadTasks = (afterCursor = null) => {
+    if (afterCursor) setLoadingMore(true);
+    else setLoading(true);
+
+    getTasks(afterCursor)
       .then((data) => {
-        setTasks(data);
+        setTasks((prev) => (afterCursor ? [...prev, ...data.tasks] : data.tasks));
+        setCursor(data.next_cursor);
+        setHasMore(data.has_more);
         setLoggedIn(true);
       })
-      .catch(() =>setLoggedIn(false))
-      .finally(() =>setLoading(false));
+      .catch(() => setLoggedIn(false))
+      .finally(() => {
+        setLoading(false);
+        setLoadingMore(false);
+      });
   };
 
-  useEffect(loadTasks,[]);
+  useEffect(() => loadTasks(), []);
+  const handleLoadMore = () => {
+    if (cursor && !loadingMore) loadTasks(cursor);
+  };
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -100,6 +114,17 @@ export default function App() {
           </li>
         ))}
       </ul>
+
+      {hasMore && (
+        <button
+          className="load-more"
+          onClick={handleLoadMore}
+          disabled={loadingMore}
+        >
+          {loadingMore ? 'Loading…' : 'Load more'}
+        </button>
+      )}
     </div>
   );
 }
+
