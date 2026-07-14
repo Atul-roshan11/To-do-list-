@@ -1,4 +1,5 @@
-const BASE = '/api/todo';
+const API_ORIGIN = import.meta.env.VITE_API_URL; 
+const BASE = `${API_ORIGIN}/api/todo`;
 
 async function request(url, options = {}) {
   const res = await fetch(url, {
