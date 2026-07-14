@@ -175,9 +175,6 @@ def get_data():
     
     return jsonify({"tasks": tasks, "next_cursor": next_cursor, "has_more": has_more})
 
-@app.route("/")
-def homepage():
-    return jsonify([])
 
 @app.route('/api/todo', methods=['POST'])
 @login_required
