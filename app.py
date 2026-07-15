@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(
     app,
     supports_credentials= True,
-    origins=["https://todolistfrontend-jade.vercel.app/"]
+    origins=["https://todolistfrontend-jade.vercel.app"]
 )
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "to-do-list-")
 app.config.update(
