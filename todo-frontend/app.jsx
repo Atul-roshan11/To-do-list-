@@ -75,7 +75,7 @@ export default function App() {
     <div className="app">
       <div className="header">
         <h1>my tasks</h1>
-        <a href="/logout">Logout</a>
+        <a href={`${import.meta.env.VITE_API_URL}/logout`}>Logout</a>
       </div>
 
       <form onSubmit={handleAdd} className="task-form">
