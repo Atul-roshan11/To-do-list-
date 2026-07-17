@@ -18,12 +18,12 @@ app = Flask(__name__)
 CORS(
     app,
     supports_credentials= True,
-    origins=["https://todolistfrontend-jade.vercel.app/"]
+    origins=["http://localhost:5173"]
 )
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "to-do-list-")
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 app.config.update(
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=False,
+    SESSION_COOKIE_SAMESITE="Lax",
     PERMANENT_SESSION_LIFETIME=timedelta(days=7)
 )
 client = MongoClient(os.environ["MONGO_URI"])
@@ -89,14 +89,24 @@ def login_required(f):
  
 @app.route("/login")
 def login():
-    print(url_for('auth_callback'))
     redirect_uri = url_for("auth_callback", _external=True)
     return google.authorize_redirect(redirect_uri)
+    
  
  
 @app.route("/auth/callback")
 def auth_callback():
-    token = google.authorize_access_token()  
+    token = google.authorize_access_token()
+    print("Cookies:", request.cookies)
+    print("Session after login:", dict(session))
+    print("Request state:", request.args.get("state")) 
+    print("Full callback args:", request.args)
+    print("Session in callback:", dict(session))
+    print("Access Token:", token.get("access_token"))
+    print("Refresh Token:", token.get("refresh_token"))
+    print("Expires At:", token.get("expires_at"))
+    print(token)
+    print(app.secret_key)
     userinfo = token.get("userinfo")
     if not userinfo:
         userinfo = google.get("https://www.googleapis.com/oauth2/v3/userinfo").json()
@@ -122,7 +132,7 @@ def auth_callback():
     session["user_id"] = str(user["_id"])
     session.permanent = True
  
-    return redirect("https://todolistfrontend-jade.vercel.app/")
+    return redirect("http://localhost:5173/")
  
  
 @app.route("/logout")
@@ -139,11 +149,10 @@ def logout():
                 params={"token": user["refresh_token"]},
             )
     session.clear()
-    return redirect("https://todolistfrontend-jade.vercel.app/")
+    return redirect("http://localhost:5173/")
  
 def serialize_task(task):
     task["_id"] = str(task["_id"])
-    task["user_id"]=str(task["user_id"])
     return task 
 
 

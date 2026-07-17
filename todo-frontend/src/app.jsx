@@ -1,13 +1,13 @@
 import {useEffect, useState} from 'react';
-import {getTasks, addTask, updateTask, deleteTask} from './src/api.js';
-import './src/app.css';
+import { getTasks, addTask, updateTask, deleteTask } from './api.js';
+import './app.css';
 
 export default function App() {
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState('');
   const [deadline, setDeadline] = useState('');
-  const [loggedIn, setLoggedIn] = useState(true);
+  const [loggedIn, setLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [cursor, setCursor] = useState(null);
@@ -19,12 +19,13 @@ export default function App() {
 
     getTasks(afterCursor)
       .then((data) => {
+        console.log("data", data);
         setTasks((prev) => (afterCursor ? [...prev, ...data.tasks] : data.tasks));
         setCursor(data.next_cursor);
         setHasMore(data.has_more);
         setLoggedIn(true);
       })
-      .catch(() => setLoggedIn(false))
+      .catch((e) => {setLoggedIn(false);console.log(e.message)})
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);
@@ -58,7 +59,7 @@ export default function App() {
       setTasks((prev) => prev.filter((t) => t._id !== id));
     });
   };
-
+  console.log("logged in", loggedIn);
   if (loading) return <p className="center">Loading...</p>;
 
   if (!loggedIn) {
@@ -75,7 +76,7 @@ export default function App() {
     <div className="app">
       <div className="header">
         <h1>my tasks</h1>
-        <a href="/logout">Logout</a>
+        <a href={`${import.meta.env.VITE_API_URL}/logout`}>Logout</a>
       </div>
 
       <form onSubmit={handleAdd} className="task-form">

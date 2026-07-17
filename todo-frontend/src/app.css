@@ -1,5 +1,5 @@
 * { box-sizing: border-box; }
-body { font-family: system-ui, sans-serif; background: #f6f7f9; margin: 0; }
+body { font-family: system-ui, sans-serif; background: #435763; margin: 0; }
 
 .center {
   height: 100vh;
@@ -10,7 +10,7 @@ body { font-family: system-ui, sans-serif; background: #f6f7f9; margin: 0; }
   gap: 12px;
 }
 
-.app { max-width: 480px; margin: 40px auto; padding: 24px; background: white;
+.app { max-width: 480px; margin: 40px auto; padding: 24px; background: rgb(172, 98, 98);
   border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 
 .header { display: flex; justify-content: space-between; align-items: center; }
@@ -29,7 +29,7 @@ body { font-family: system-ui, sans-serif; background: #f6f7f9; margin: 0; }
 .task-list li button { margin-left: auto; background: none; border: none;
   color: #d33; cursor: pointer; }
 
-.login-btn { padding: 10px 18px; background: #4285F4; color: white;
+.login-btn { padding: 10px 18px; background: #807f4f; color: white;
   border-radius: 6px; text-decoration: none; }
 
 .load-more {
