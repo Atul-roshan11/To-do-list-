@@ -75,14 +75,14 @@ def login_required(f):
     def decorated(*args, **kwargs):
         user_id = session.get("user_id")
         if not user_id:
-            return redirect(url_for("login"))
+            return redirect("127.0.0.1.5173")
         try:
             user = users_collection.find_one({"_id": ObjectId(user_id)})
         except InvalidId:
             user = None
         if not user:
             session.clear()
-            return redirect(url_for("login"))
+            return redirect(url_for("127.0.0.1.5173"))
         g.user = user
         return f(*args, **kwargs)
     return decorated

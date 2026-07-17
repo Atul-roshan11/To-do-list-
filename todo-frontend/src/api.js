@@ -1,4 +1,4 @@
-const API_ORIGIN = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+export const API_ORIGIN = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 console.log("apiorigin",API_ORIGIN)
 const BASE = `${API_ORIGIN}/api/todo`;
 
